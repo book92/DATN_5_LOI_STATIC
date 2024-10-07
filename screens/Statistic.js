@@ -172,7 +172,6 @@ const Statistic = () => {
     const wrappedLabels = labels.map(label => wrapLabel(label, maxLabelWidth));
     return {
       labels: wrappedLabels,
-      originalLabels: labels,  // Thêm dòng này
       datasets: [
         {
           data: Object.values(data),
@@ -244,26 +243,22 @@ const Statistic = () => {
               showValuesOnTopOfBars={true}
             />
             <View style={[styles.overlayContainer, { width: Math.max(chartWidth, data.labels.length * (isUserChart ? 120 : 60)) }]}>
-              {data.datasets[0].data.map((value, index) => {
-                const barHeight = (value / Math.max(...data.datasets[0].data)) * chartHeight;
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.overlayLabel,
-                      {
-                        left: index * barWidth,
-                        width: barWidth,
-                        height: chartHeight,  // Thay đổi từ barHeight thành chartHeight
-                        bottom: 0,
-                      },
-                    ]}
-                    onPress={() => handleChartPress(chartType, data.originalLabels[index], value)}
-                  >
-                    <View style={styles.touchableArea} />
-                  </TouchableOpacity>
-                );
-              })}
+              {data.labels.map((label, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.overlayLabel,
+                    {
+                      left: index * barWidth,
+                      width: barWidth,
+                      height: chartHeight,
+                    },
+                  ]}
+                  onPress={() => handleChartPress(chartType, label, data.datasets[0].data[index])}
+                >
+                  <View style={styles.touchableArea} />
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </ScrollView>
