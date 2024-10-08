@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
-import { Searchbar } from 'react-native-paper';
+import { Searchbar, Button } from 'react-native-paper';
 
 const BLUE_COLOR = '#0000CD';
 
@@ -20,7 +20,7 @@ const StaticList = ({ chartData, onClose }) => {
             query = firestore().collection('ERROR').where('deviceName', '==', chartData.label);
             break;
           case 'userByRoom':
-            query = firestore().collection('USERS').where('departmentName', '==', chartData.label);
+            query = firestore().collection('USERS').where('department', '==', chartData.label);
             break;
           case 'deviceByRoom':
             query = firestore().collection('DEVICES').where('departmentName', '==', chartData.label);
@@ -34,6 +34,7 @@ const StaticList = ({ chartData, onClose }) => {
         }
 
         const snapshot = await query.get();
+        console.log("Fetched devices:", snapshot.docs.map(doc => doc.data()));
         const itemsList = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -70,16 +71,27 @@ const StaticList = ({ chartData, onClose }) => {
         };
       case 'userByRoom':
         return {
-          title: item.userName,
+          title: item.fullname,
           subtitle: item.email || 'Không có email',
           icon: 'user'
         };
-      case 'deviceByRoom':
-      case 'deviceByUser':
+        case 'deviceByRoom':
+          return {
+            title: item.name || 'Không có tên thiết bị',
+            subtitle: `${item.type || 'Không có kiểu thiết bị'}\n${item.user || 'Không có người dùng'}\n${item.userEmail || 'Không có email'}`,
+            icon: 'desktop'
+          };
+        case 'deviceByUser':
+          return {
+            title: item.name || 'Không có tên thiết bị', 
+            subtitle: `${item.type || 'Không có kiểu thiết bị'}\n${item.user || 'Không có người dùng'}\n${item.userEmail || 'Không có email'}`,
+            icon: 'desktop'
+          };
+      case 'columnData':
         return {
-          title: item.deviceName,
-          subtitle: item.user || 'Không có người dùng',
-          icon: 'desktop'
+          title: item.name || 'Không có tên',
+          subtitle: `Giá trị: ${item.value}`,
+          icon: 'bar-chart'
         };
       default:
         return {
@@ -92,14 +104,20 @@ const StaticList = ({ chartData, onClose }) => {
 
   const renderItem = ({ item }) => {
     const { title, subtitle, icon } = getItemContent(item);
+    const isTitleBlue = chartData.type === 'deviceByRoom' || chartData.type === 'deviceByUser';
+
     return (
       <TouchableOpacity style={styles.item}>
         <View style={styles.iconContainer}>
           <Icon name={icon} size={24} color={BLUE_COLOR} />
         </View>
         <View style={styles.itemTextContainer}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={[styles.title, { color: BLUE_COLOR }]}>
+            {title}
+          </Text>
+          <Text style={[styles.subtitle, { color: BLUE_COLOR }]}>
+            {subtitle}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -131,7 +149,7 @@ const StaticList = ({ chartData, onClose }) => {
       />
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={onClose} style={styles.button}>
-          <Text style={styles.buttonText}>Trở về</Text>
+          <Text style={styles.buttonText}>Đóng</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -169,6 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 8,
     marginHorizontal: 20,
+    marginBottom: 10,
   },
   iconContainer: {
     backgroundColor: '#e0e0e0',
@@ -177,26 +196,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 10,
   },
   itemTextContainer: {
     flex: 1,
-    marginLeft: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  blueTitle: {
     color: BLUE_COLOR,
   },
   subtitle: {
     fontSize: 14,
     color: 'gray',
-    marginTop: 5,
-  },
-  contactText: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: BLUE_COLOR,
-    marginVertical: 10,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -216,6 +231,18 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingVertical: 10,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: 'red',
   },
 });
 

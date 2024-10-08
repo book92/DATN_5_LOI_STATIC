@@ -166,9 +166,9 @@ const Statistic = () => {
     return lines.join('\n');
   };
 
-  const createChartData = (data, isUserChart = false) => {
+  const createChartData = (data) => {
     const labels = Object.keys(data);
-    const maxLabelWidth = isUserChart ? 20 : 10;
+    const maxLabelWidth = 20; // Áp dụng cho tất cả các biểu đồ
     const wrappedLabels = labels.map(label => wrapLabel(label, maxLabelWidth));
     return {
       labels: wrappedLabels,
@@ -185,7 +185,7 @@ const Statistic = () => {
   const dataErrorDevice = createChartData(filteredData.errorCount);
   const dataRoomCountsUser = createChartData(filteredData.roomCountsUser);
   const dataDeviceRoom = createChartData(filteredData.roomCountsDevice);
-  const dataDeviceUser = createChartData(filteredData.userCount, true);
+  const dataDeviceUser = createChartData(filteredData.userCount);
 
   const handleChartPress = (chartType, label, value) => {
     const chartData = {
@@ -205,7 +205,6 @@ const Statistic = () => {
   };
 
   const renderChart = (data, title, chartType) => {
-    const isUserChart = chartType === 'deviceByUser';
     const barWidth = chartWidth / data.labels.length;
 
     return (
@@ -217,7 +216,7 @@ const Statistic = () => {
           <View>
             <BarChart
               data={data}
-              width={Math.max(chartWidth, data.labels.length * (isUserChart ? 120 : 60))}
+              width={Math.max(chartWidth, data.labels.length * 120)}
               height={chartHeight}
               chartConfig={{
                 backgroundGradientFrom: '#fff',
@@ -225,14 +224,14 @@ const Statistic = () => {
                 color: (opacity = 1) => `rgba(0, 0, 205, ${opacity})`,
                 labelColor: (opacity = 1) => BLUE_COLOR,
                 propsForLabels: {
-                  fontSize: isUserChart ? 8 : 10,
-                  width: isUserChart ? 120 : 60,
+                  fontSize: 8,
+                  width: 120,
                   alignmentBaseline: 'middle',
                   fill: BLUE_COLOR,
                 },
               }}
               verticalLabelRotation={0}
-              horizontalLabelRotation={isUserChart ? -45 : 0}
+              horizontalLabelRotation={-45} // Xoay nhãn để có nhiều không gian hơn
               yAxisLabel=""
               yAxisSuffix=""
               style={{
@@ -242,7 +241,7 @@ const Statistic = () => {
               fromZero={true}
               showValuesOnTopOfBars={true}
             />
-            <View style={[styles.overlayContainer, { width: Math.max(chartWidth, data.labels.length * (isUserChart ? 120 : 60)) }]}>
+            <View style={[styles.overlayContainer, { width: Math.max(chartWidth, data.labels.length * 120) }]}>
               {data.labels.map((label, index) => (
                 <TouchableOpacity
                   key={index}
@@ -291,7 +290,12 @@ const Statistic = () => {
         style={{ margin: 0 }}
       >
         <View style={{ flex: 1, backgroundColor: 'white' }}>
-          <StaticList chartData={selectedChartData} onClose={handleCloseStaticList} />
+          {selectedChartData && (
+            <StaticList
+              chartData={selectedChartData}
+              onClose={() => setModalVisible(false)} // Ensure this is set correctly
+            />
+          )}
         </View>
       </Modal>
     </ScrollView>
